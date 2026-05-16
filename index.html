@@ -6,124 +6,119 @@
 <title>SmartRoom Cloud Dashboard</title>
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <style>
-:root{--bg:#0a0b0e;--card:#111318;--card2:#181b22;--bd:rgba(255,255,255,.1);--txt:#e8eaf0;--mut:#7b8190;--blue:#60a5fa;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#8b5cf6}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(96,165,250,.13),transparent 35%),var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.wrap{max-width:1080px;margin:0 auto;padding:22px}header{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:20px}.logo{font-weight:800;letter-spacing:.08em}.pill{border:1px solid var(--bd);background:var(--card);border-radius:999px;padding:8px 12px;color:var(--mut);font-size:13px}.on{color:var(--green)}.off{color:var(--red)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:rgba(17,19,24,.92);border:1px solid var(--bd);border-radius:18px;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.22)}.metric .label{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}.metric .val{font-size:38px;font-weight:800;margin-top:8px}.blue{color:var(--blue)}.green{color:var(--green)}.amber{color:var(--amber)}.purple{color:var(--purple)}.main{display:grid;grid-template-columns:1fr 340px;gap:14px;margin-top:14px}.section{font-size:12px;color:var(--mut);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em}.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.btn{border:1px solid var(--bd);background:var(--card2);color:var(--txt);border-radius:12px;padding:12px;cursor:pointer;font-size:14px}.btn:hover{border-color:var(--blue)}.btn.primary{background:linear-gradient(135deg,#2563eb,#7c3aed);border:0}.btn.danger{border-color:rgba(239,68,68,.4);color:#fecaca}.temp{display:flex;align-items:center;justify-content:center;gap:12px}.temp .num{font-size:56px;font-weight:900;color:var(--blue)}.round{width:48px;height:48px;border-radius:50%;font-size:24px}.form{display:grid;gap:8px}.form label{font-size:12px;color:var(--mut)}input{width:100%;border:1px solid var(--bd);background:#0b0c10;color:var(--txt);border-radius:10px;padding:10px}.log{height:240px;overflow:auto;background:#07080b;border:1px solid var(--bd);border-radius:12px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--mut)}.log div{padding:2px 0}.row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--bd);padding:8px 0}.row:last-child{border-bottom:0}@media(max-width:850px){.grid,.main{grid-template-columns:1fr}.btns{grid-template-columns:repeat(2,1fr)}header{align-items:flex-start;flex-direction:column}}
+:root{
+  --bg:#07080c;--card:#10131b;--card2:#181c28;--bd:rgba(255,255,255,.1);
+  --txt:#eef2ff;--mut:#8b93a7;--blue:#60a5fa;--green:#10b981;--red:#ef4444;
+  --amber:#f59e0b;--purple:#8b5cf6;--cyan:#22d3ee;--pink:#ec4899;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 12% 8%,rgba(96,165,250,.20),transparent 34%),radial-gradient(circle at 90% 18%,rgba(139,92,246,.14),transparent 30%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:auto,auto,42px 42px,42px 42px;pointer-events:none;z-index:-2}
+body:after{content:"";position:fixed;width:360px;height:360px;border-radius:50%;right:-120px;bottom:40px;background:rgba(34,211,238,.10);filter:blur(80px);z-index:-1;animation:floatOrb 7s ease-in-out infinite alternate}@keyframes floatOrb{to{transform:translate(-30px,-40px) scale(1.15)}}
+.wrap{max-width:1180px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:20px}.logo{font-weight:900;letter-spacing:.10em;font-size:20px}.subtitle{color:var(--mut);font-size:13px;margin-top:5px}.pill{border:1px solid var(--bd);background:rgba(16,19,27,.85);backdrop-filter:blur(16px);border-radius:999px;padding:9px 13px;color:var(--mut);font-size:13px;box-shadow:0 12px 35px rgba(0,0,0,.25)}.on{color:var(--green)}.off{color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.main{display:grid;grid-template-columns:1fr 360px;gap:14px;margin-top:14px}.triple{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:14px;margin-top:14px}.card{background:rgba(16,19,27,.86);border:1px solid var(--bd);border-radius:22px;padding:18px;box-shadow:0 18px 55px rgba(0,0,0,.25);position:relative;overflow:hidden;animation:fadeUp .45s ease both}.card:before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.06),transparent 28%);pointer-events:none}.card:hover{border-color:rgba(96,165,250,.35);transform:translateY(-2px);transition:.22s}.metric .label,.section{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.09em}.metric .val{font-size:40px;font-weight:900;margin-top:8px;line-height:1}.blue{color:var(--blue)}.green{color:var(--green)}.amber{color:var(--amber)}.purple{color:var(--purple)}.cyan{color:var(--cyan)}.small{font-size:12px;color:var(--mut);margin-top:8px}.pulse{animation:pulse 1.6s ease-in-out infinite}@keyframes pulse{50%{opacity:.58}}@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.btn{border:1px solid var(--bd);background:var(--card2);color:var(--txt);border-radius:14px;padding:12px;cursor:pointer;font-size:14px;transition:.16s}.btn:hover{border-color:var(--blue);box-shadow:0 0 0 3px rgba(96,165,250,.08)}.btn:active{transform:scale(.97)}.btn.primary{background:linear-gradient(135deg,#2563eb,#7c3aed);border:0}.btn.danger{border-color:rgba(239,68,68,.42);color:#fecaca}.btn.good{border-color:rgba(16,185,129,.42);color:#bbf7d0}.temp{display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0 16px}.temp .num{font-size:58px;font-weight:950;color:var(--blue);text-shadow:0 0 35px rgba(96,165,250,.22)}.round{width:50px;height:50px;border-radius:50%;font-size:24px}.form{display:grid;gap:8px}.form label{font-size:12px;color:var(--mut)}input{width:100%;border:1px solid var(--bd);background:#080a10;color:var(--txt);border-radius:12px;padding:10px}.log{height:260px;overflow:auto;background:#07080b;border:1px solid var(--bd);border-radius:14px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--mut)}.log div{padding:3px 0}.row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--bd);padding:9px 0}.row:last-child{border-bottom:0}.chartBox{height:270px;position:relative}.chartBox canvas{width:100%;height:100%;display:block}.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;color:var(--mut);font-size:12px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}.bar{height:10px;background:#0b0d13;border:1px solid var(--bd);border-radius:999px;overflow:hidden}.fill{height:100%;width:0%;border-radius:999px;transition:width .8s ease}.analysisText{font-size:14px;line-height:1.55;color:#d7dded}.badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd);background:rgba(255,255,255,.04);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--mut)}
+@media(max-width:900px){.grid,.main,.triple{grid-template-columns:1fr}.btns{grid-template-columns:repeat(2,1fr)}.top{align-items:flex-start;flex-direction:column}.metric .val{font-size:34px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header>
-  <div><div class="logo">🏠 SMARTROOM CLOUD</div><div style="color:var(--mut);font-size:13px;margin-top:4px">Điều khiển ESP8266 qua MQTT Cloud / GitHub Pages</div></div>
-  <div class="pill" id="conn">MQTT: chưa kết nối</div>
-</header>
-
-<div class="grid">
-  <div class="card metric"><div class="label">Nhiệt độ</div><div class="val blue"><span id="temp">--</span>°C</div></div>
-  <div class="card metric"><div class="label">Độ ẩm</div><div class="val green"><span id="hum">--</span>%</div></div>
-  <div class="card metric"><div class="label">Cảm nhận</div><div class="val amber"><span id="hi">--</span>°C</div></div>
-  <div class="card metric"><div class="label">WiFi RSSI</div><div class="val purple"><span id="rssi">--</span></div></div>
-</div>
-
-<div class="main">
-  <div class="card">
-    <div class="section">Điều khiển điều hòa</div>
-    <div class="temp">
-      <button class="btn round" onclick="changeTemp(-1)">−</button>
-      <div class="num"><span id="setTemp">26</span>°C</div>
-      <button class="btn round" onclick="changeTemp(1)">+</button>
-    </div>
-    <div class="btns" style="margin-top:14px">
-      <button class="btn primary" onclick="powerOn()">⏻ Bật Cool</button>
-      <button class="btn danger" onclick="sendCmd('power_off')">Tắt</button>
-      <button class="btn" onclick="sendCmd('mode_cool')">❄️ Cool</button>
-      <button class="btn" onclick="sendCmd('mode_dry')">💧 Dry</button>
-      <button class="btn" onclick="sendCmd('mode_fan')">💨 Fan</button>
-      <button class="btn" onclick="sendCmd('fan_4')">⚡ Turbo</button>
-      <button class="btn" onclick="sendCmd('swing_on')">↕ Swing On</button>
-      <button class="btn" onclick="sendCmd('swing_off')">Swing Off</button>
-      <button class="btn" onclick="sendCmd('sleep')">😴 Sleep</button>
-      <button class="btn" onclick="sendCmd('eco')">🌿 Eco</button>
-      <button class="btn" onclick="sendCmd('led')">💡 LED</button>
-      <button class="btn" onclick="sendCmd('timer_1h')">⏱ 1h</button>
-    </div>
+  <div class="top">
+    <div><div class="logo">🏠 SMARTROOM CLOUD</div><div class="subtitle">Dashboard MQTT Cloud / GitHub Pages — realtime + phân tích</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><div class="pill" id="conn">MQTT: chưa kết nối</div><div class="pill" id="clock">--:--:--</div></div>
   </div>
 
-  <div class="card">
-    <div class="section">Cấu hình MQTT</div>
-    <div class="form">
-      <label>WebSocket URL</label><input id="url" placeholder="wss://xxxxx.s1.eu.hivemq.cloud:8884/mqtt">
-      <label>Username</label><input id="user" placeholder="mqtt user">
-      <label>Password</label><input id="pass" placeholder="mqtt password" type="password">
-      <label>Topic lệnh</label><input id="topicCmd" value="smartroom/cmd">
-      <label>Topic dữ liệu</label><input id="topicData" value="smartroom/data">
-      <button class="btn primary" onclick="saveAndConnect()">Lưu & kết nối</button>
+  <div class="grid">
+    <div class="card metric"><div class="label">Nhiệt độ</div><div class="val blue"><span id="temp">--</span>°C</div><div class="small" id="tempTrend">Đang chờ dữ liệu</div></div>
+    <div class="card metric"><div class="label">Độ ẩm</div><div class="val green"><span id="hum">--</span>%</div><div class="small" id="humTrend">Đang chờ dữ liệu</div></div>
+    <div class="card metric"><div class="label">Cảm nhận</div><div class="val amber"><span id="hi">--</span>°C</div><div class="small" id="hiText">Heat index</div></div>
+    <div class="card metric"><div class="label">WiFi RSSI</div><div class="val purple"><span id="rssi">--</span></div><div class="small" id="wifiText">Tín hiệu ESP</div></div>
+  </div>
+
+  <div class="main">
+    <div class="card">
+      <div class="section">📈 Biểu đồ realtime</div>
+      <div class="chartBox"><canvas id="chart" width="900" height="330"></canvas></div>
+      <div class="legend"><span><i class="dot" style="background:var(--blue)"></i>Nhiệt độ</span><span><i class="dot" style="background:var(--green)"></i>Độ ẩm</span><span><i class="dot" style="background:var(--amber)"></i>Cảm nhận</span><span id="sampleCount">0 mẫu</span></div>
+    </div>
+
+    <div class="card">
+      <div class="section">🎛️ Điều khiển điều hòa</div>
+      <div class="temp"><button class="btn round" onclick="changeTemp(-1)">−</button><div class="num"><span id="setTemp">26</span>°C</div><button class="btn round" onclick="changeTemp(1)">+</button></div>
+      <div class="btns">
+        <button class="btn primary" onclick="powerOn()">⏻ Bật Cool</button>
+        <button class="btn danger" onclick="sendCmd('power_off')">Tắt</button>
+        <button class="btn good" onclick="sendCmd('temp_up')">Temp +</button>
+        <button class="btn good" onclick="sendCmd('temp_down')">Temp -</button>
+        <button class="btn" onclick="sendCmd('mode_cool')">❄️ Cool</button>
+        <button class="btn" onclick="sendCmd('mode_dry')">💧 Dry</button>
+        <button class="btn" onclick="sendCmd('fan_4')">⚡ Turbo</button>
+        <button class="btn" onclick="sendCmd('swing_on')">↕ Swing</button>
+        <button class="btn" onclick="sendCmd('sleep')">😴 Sleep</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="main">
-  <div class="card">
-    <div class="section">Trạng thái ESP8266</div>
-    <div class="row"><span>IP nội bộ</span><b id="ip">--</b></div>
-    <div class="row"><span>DHT11</span><b id="dht">--</b></div>
-    <div class="row"><span>AC Power</span><b id="acpower">--</b></div>
-    <div class="row"><span>AC Temp</span><b id="actemp">--</b></div>
-    <div class="row"><span>Free heap</span><b id="heap">--</b></div>
+  <div class="triple">
+    <div class="card">
+      <div class="section">🧠 Phân tích phòng</div>
+      <div class="analysisText" id="analysis">Đang chờ dữ liệu từ ESP8266...</div>
+      <div style="margin-top:14px;display:grid;gap:10px">
+        <div><div class="row"><span>Điểm tiện nghi</span><b id="comfortNum">--/100</b></div><div class="bar"><div id="comfortBar" class="fill" style="background:linear-gradient(90deg,var(--red),var(--amber),var(--green))"></div></div></div>
+        <div><div class="row"><span>Gợi ý nhiệt độ</span><b id="ideal">--°C</b></div></div>
+        <div><span class="badge" id="alertBadge">⏳ Chờ sensor</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section">📟 Trạng thái ESP8266</div>
+      <div class="row"><span>IP nội bộ</span><b id="ip">--</b></div>
+      <div class="row"><span>DHT11</span><b id="dht">--</b></div>
+      <div class="row"><span>AC Power</span><b id="acpower">--</b></div>
+      <div class="row"><span>AC Temp</span><b id="actemp">--</b></div>
+      <div class="row"><span>Free heap</span><b id="heap">--</b></div>
+      <div class="row"><span>Uptime</span><b id="uptime">--</b></div>
+    </div>
+
+    <div class="card">
+      <div class="section">🔐 MQTT</div>
+      <div class="form">
+        <label>WebSocket URL</label><input id="url">
+        <label>Username</label><input id="user">
+        <label>Password</label><input id="pass" type="password">
+        <label>Topic lệnh</label><input id="topicCmd">
+        <label>Topic dữ liệu</label><input id="topicData">
+        <button class="btn primary" onclick="saveAndConnect()">Lưu & kết nối</button>
+      </div>
+    </div>
   </div>
-  <div class="card">
-    <div class="section">Log</div>
-    <div class="log" id="log"></div>
+
+  <div class="main">
+    <div class="card"><div class="section">🧾 Log hệ thống</div><div class="log" id="log"></div></div>
+    <div class="card"><div class="section">✨ Tiện ích nhanh</div><div class="btns"><button class="btn" onclick="clearHistory()">Xóa biểu đồ</button><button class="btn" onclick="testDemo()">Demo dữ liệu</button><button class="btn" onclick="connect()">Kết nối lại</button></div><p class="small">Web tự lưu cấu hình trên trình duyệt và tự kết nối khi mở trang.</p></div>
   </div>
-</div>
 </div>
 <script>
-let client=null, setTemp=26;
-const $=id=>document.getElementById(id);
-function log(msg){const t=new Date().toLocaleTimeString('vi-VN'); $('log').innerHTML=`<div>[${t}] ${msg}</div>`+$('log').innerHTML}
-function loadCfg(){
-  $('url').value =
-    'wss://c8b3d37d294046e6ba3cd347a57e9eb5.s1.eu.hivemq.cloud:8884/mqtt';
-
-  $('user').value = 'smartroom2';
-  $('pass').value = 'manhA123@';
-
-  $('topicCmd').value = 'smartroom/cmd';
-  $('topicData').value = 'smartroom/data';
-
-  connect();
-}
+let client=null,setTemp=26;const MAX_POINTS=60;const history=[];const $=id=>document.getElementById(id);
+const DEFAULTS={url:'wss://c8b3d37d294046e6ba3cd347a57e9eb5.s1.eu.hivemq.cloud:8884/mqtt',user:'smartroom2',pass:'manhA123@',topicCmd:'smartroom/cmd',topicData:'smartroom/data'};
+function log(msg){const t=new Date().toLocaleTimeString('vi-VN');$('log').innerHTML=`<div>[${t}] ${msg}</div>`+$('log').innerHTML}
+function setConn(ok,msg){$('conn').textContent='MQTT: '+msg;$('conn').className='pill '+(ok?'on':'off')}
+function loadCfg(){['url','user','pass','topicCmd','topicData'].forEach(id=>{$(id).value=localStorage.getItem('sr_'+id)||DEFAULTS[id]});connect()}
 function saveCfg(){['url','user','pass','topicCmd','topicData'].forEach(id=>localStorage.setItem('sr_'+id,$(id).value.trim()))}
-function setConn(ok,msg){$('conn').textContent='MQTT: '+msg; $('conn').className='pill '+(ok?'on':'off')}
-function saveAndConnect(){saveCfg(); connect()}
-function connect(){
-  const url=$('url').value.trim(), username=$('user').value.trim(), password=$('pass').value.trim();
-  if(!url||!username||!password){setConn(false,'thiếu cấu hình'); log('Điền MQTT WebSocket URL/user/pass'); return}
-  if(client) try{client.end(true)}catch(e){}
-  client=mqtt.connect(url,{username,password,clientId:'smartroom-web-'+Math.random().toString(16).slice(2),clean:true,connectTimeout:5000,reconnectPeriod:3000});
-  client.on('connect',()=>{setConn(true,'đã kết nối'); log('✓ MQTT connected'); client.subscribe($('topicData').value.trim())});
-  client.on('reconnect',()=>setConn(false,'đang kết nối lại'));
-  client.on('error',e=>{setConn(false,'lỗi'); log('✗ '+e.message)});
-  client.on('message',(topic,payload)=>{try{update(JSON.parse(payload.toString()))}catch(e){log('data: '+payload.toString())}});
-}
-function sendCmd(cmd){
-  if(!client||!client.connected){log('✗ MQTT chưa kết nối'); return}
-  client.publish($('topicCmd').value.trim(),cmd); log('IR → '+cmd)
-}
+function saveAndConnect(){saveCfg();connect()}
+function connect(){const url=$('url').value.trim(),username=$('user').value.trim(),password=$('pass').value.trim();if(!url||!username||!password){setConn(false,'thiếu cấu hình');log('Điền MQTT WebSocket URL/user/pass');return}if(client)try{client.end(true)}catch(e){}client=mqtt.connect(url,{username,password,clientId:'smartroom-web-'+Math.random().toString(16).slice(2),clean:true,connectTimeout:6000,reconnectPeriod:3000});client.on('connect',()=>{setConn(true,'đã kết nối');log('✓ MQTT connected');client.subscribe($('topicData').value.trim())});client.on('reconnect',()=>setConn(false,'đang kết nối lại'));client.on('close',()=>setConn(false,'mất kết nối'));client.on('error',e=>{setConn(false,'lỗi');log('✗ '+e.message)});client.on('message',(topic,payload)=>{try{update(JSON.parse(payload.toString()))}catch(e){log('data: '+payload.toString())}})}
+function sendCmd(cmd){if(!client||!client.connected){log('✗ MQTT chưa kết nối');return}client.publish($('topicCmd').value.trim(),cmd);log('IR → '+cmd)}
 function powerOn(){sendCmd('power_on_cool_'+setTemp+'c')}
-function changeTemp(d){setTemp=Math.max(16,Math.min(30,setTemp+d)); $('setTemp').textContent=setTemp; sendCmd('set_temp_'+setTemp)}
-function update(d){
-  if(d.temperature!==undefined) $('temp').textContent=d.temperature;
-  if(d.humidity!==undefined) $('hum').textContent=d.humidity;
-  if(d.heat_index!==undefined) $('hi').textContent=d.heat_index;
-  if(d.rssi!==undefined) $('rssi').textContent=d.rssi;
-  if(d.ip) $('ip').textContent=d.ip;
-  if(d.dht_ok!==undefined) $('dht').textContent=d.dht_ok?'OK':'ERROR';
-  if(d.ac_power!==undefined) $('acpower').textContent=d.ac_power?'ON':'OFF';
-  if(d.ac_temp!==undefined){$('actemp').textContent=d.ac_temp+'°C'; setTemp=d.ac_temp; $('setTemp').textContent=setTemp}
-  if(d.free_heap!==undefined) $('heap').textContent=d.free_heap;
-  if(d.event) log('ESP: '+d.event);
-}
-loadCfg();
-log('Dashboard tự động kết nối MQTT...');
+function changeTemp(d){setTemp=Math.max(16,Math.min(30,setTemp+d));$('setTemp').textContent=setTemp;sendCmd(d>0?'temp_up':'temp_down')}
+function update(d){if(d.temperature!==undefined)$('temp').textContent=d.temperature;if(d.humidity!==undefined)$('hum').textContent=d.humidity;if(d.heat_index!==undefined)$('hi').textContent=d.heat_index;if(d.rssi!==undefined)$('rssi').textContent=d.rssi;if(d.ip)$('ip').textContent=d.ip;if(d.dht_ok!==undefined)$('dht').textContent=d.dht_ok?'OK':'ERROR';if(d.ac_power!==undefined)$('acpower').textContent=d.ac_power?'ON':'OFF';if(d.ac_temp!==undefined){$('actemp').textContent=d.ac_temp+'°C';setTemp=d.ac_temp;$('setTemp').textContent=setTemp}if(d.free_heap!==undefined)$('heap').textContent=d.free_heap;if(d.uptime_ms!==undefined)$('uptime').textContent=formatUptime(d.uptime_ms);if(d.ideal_temp!==undefined)$('ideal').textContent=d.ideal_temp+'°C';if(d.comfort!==undefined){$('comfortNum').textContent=d.comfort+'/100';$('comfortBar').style.width=Math.max(0,Math.min(100,d.comfort))+'%'}if(d.temperature!==undefined&&d.humidity!==undefined){addPoint(d);analyze(d)}if(d.event)log('ESP: '+d.event)}
+function addPoint(d){history.push({t:new Date(),temp:+d.temperature||0,hum:+d.humidity||0,hi:+d.heat_index||0});while(history.length>MAX_POINTS)history.shift();$('sampleCount').textContent=history.length+' mẫu';drawChart();updateTrends()}
+function drawChart(){const c=$('chart'),ctx=c.getContext('2d'),w=c.width,h=c.height,p=36;ctx.clearRect(0,0,w,h);ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;for(let i=0;i<5;i++){let y=p+i*(h-2*p)/4;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(w-p,y);ctx.stroke()}if(history.length<2)return;const vals=history.flatMap(x=>[x.temp,x.hi,x.hum]);let min=Math.min(...vals,20),max=Math.max(...vals,80);if(max-min<10){max+=5;min-=5}const x=i=>p+i*(w-2*p)/(MAX_POINTS-1);const y=v=>h-p-(v-min)*(h-2*p)/(max-min);function line(key,color){ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();history.forEach((pt,i)=>{const xx=x(i),yy=y(pt[key]);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy)});ctx.stroke();ctx.fillStyle=color;const last=history[history.length-1];ctx.beginPath();ctx.arc(x(history.length-1),y(last[key]),5,0,Math.PI*2);ctx.fill()}line('temp','#60a5fa');line('hum','#10b981');line('hi','#f59e0b')}
+function updateTrends(){if(history.length<2)return;const a=history[history.length-2],b=history[history.length-1];$('tempTrend').textContent=trend(b.temp-a.temp,'°C');$('humTrend').textContent=trend(b.hum-a.hum,'%')}
+function trend(d,u){if(Math.abs(d)<.1)return '— ổn định';return (d>0?'▲ +':'▼ ')+d.toFixed(1)+u}
+function analyze(d){const t=+d.temperature,h=+d.humidity,hi=+d.heat_index;let text='Phòng đang trong trạng thái ổn định.';let badge='✅ Bình thường';if(hi>=40){text='Nhiệt độ cảm nhận rất cao. Nên bật điều hòa, đóng cửa và đặt khoảng 24–26°C.';badge='🔥 Rất nóng'}else if(hi>=32){text='Phòng khá nóng. Nên bật Cool hoặc giảm nhiệt độ cài đặt một chút.';badge='⚠️ Nóng'}else if(h>=75){text='Độ ẩm cao. Có thể dùng chế độ Dry để dễ chịu hơn.';badge='💧 Ẩm cao'}else if(t>=28){text='Nhiệt độ hơi cao, nên theo dõi thêm hoặc bật điều hòa nhẹ.';badge='🌡️ Hơi nóng'}$('analysis').textContent=text;$('alertBadge').textContent=badge;let rssi=Number($('rssi').textContent);$('wifiText').textContent=isNaN(rssi)?'Tín hiệu ESP':(rssi>-60?'WiFi tốt':rssi>-75?'WiFi trung bình':'WiFi yếu')}
+function formatUptime(ms){let s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h+'h '+m+'m'}
+function clearHistory(){history.length=0;drawChart();$('sampleCount').textContent='0 mẫu';log('Đã xóa biểu đồ')}
+function testDemo(){update({temperature:(28+Math.random()*6).toFixed(1),humidity:Math.round(55+Math.random()*20),heat_index:(31+Math.random()*9).toFixed(1),rssi:-55-Math.round(Math.random()*20),comfort:Math.round(50+Math.random()*40),ideal_temp:24,free_heap:15000+Math.round(Math.random()*4000),dht_ok:true,ac_power:false,ac_temp:setTemp,event:'demo'})}
+setInterval(()=>{$('clock').textContent=new Date().toLocaleTimeString('vi-VN')},1000);loadCfg();log('Dashboard tự động kết nối MQTT...');drawChart();
 </script>
 </body>
 </html>
