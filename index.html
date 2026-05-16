@@ -2,115 +2,634 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SmartRoom Climate Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartRoom Climate</title>
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <style>
 :root{
-  --bg:#070912; --bg2:#0b1020; --glass:rgba(17,24,39,.62); --glass2:rgba(15,23,42,.78);
-  --bd:rgba(255,255,255,.11); --txt:#eef4ff; --mut:#94a3b8; --blue:#60a5fa;
-  --cyan:#22d3ee; --green:#10b981; --amber:#f59e0b; --red:#fb7185; --purple:#a78bfa;
-  --shadow:0 20px 80px rgba(0,0,0,.35); --r:24px;
+  --bg:#070b14;
+  --bg2:#0b1220;
+  --card:rgba(13,22,38,.78);
+  --card2:rgba(16,28,48,.9);
+  --bd:rgba(148,163,184,.16);
+  --txt:#eef6ff;
+  --mut:#8ea3bd;
+  --blue:#38bdf8;
+  --blue2:#60a5fa;
+  --green:#34d399;
+  --red:#fb7185;
+  --amber:#f59e0b;
+  --purple:#8b5cf6;
+  --shadow:0 24px 70px rgba(0,0,0,.35);
+  --r:24px;
 }
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--txt);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);overflow-x:hidden}
-body:before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 20% -10%,rgba(96,165,250,.32),transparent 38%),radial-gradient(circle at 90% 10%,rgba(167,139,250,.24),transparent 35%),radial-gradient(circle at 50% 100%,rgba(34,211,238,.18),transparent 42%),linear-gradient(180deg,#070912,#0b1020 55%,#070912);z-index:-3}
-body:after{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent);z-index:-2;pointer-events:none}.orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.5;pointer-events:none;z-index:-1;animation:float 9s ease-in-out infinite alternate}.orb.one{width:260px;height:260px;background:#2563eb;left:-80px;top:140px}.orb.two{width:230px;height:230px;background:#7c3aed;right:-70px;bottom:100px;animation-delay:1.5s}@keyframes float{from{transform:translateY(-18px)}to{transform:translateY(18px)}}
-.app{width:min(1180px,100%);margin:0 auto;padding:18px 18px 92px}.topbar{position:sticky;top:0;z-index:20;margin:0 -18px 16px;padding:12px 18px;background:linear-gradient(180deg,rgba(7,9,18,.9),rgba(7,9,18,.55));backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.06)}.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(1180px,100%);margin:0 auto}.brand{display:flex;align-items:center;gap:10px;min-width:0}.brand-icon{width:42px;height:42px;border-radius:16px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:grid;place-items:center;box-shadow:0 0 28px rgba(96,165,250,.35)}.brand h1{font-size:15px;letter-spacing:.14em;margin:0;white-space:nowrap}.brand p{margin:2px 0 0;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.status-pill{border:1px solid var(--bd);background:rgba(15,23,42,.72);border-radius:999px;padding:8px 12px;color:var(--mut);font-size:12px;display:flex;align-items:center;gap:8px;white-space:nowrap}.dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 12px var(--red)}.status-pill.on .dot{background:var(--green);box-shadow:0 0 12px var(--green)}.status-pill.on{color:#bbf7d0}
-.grid{display:grid;gap:16px}.hero{grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr);align-items:stretch}.glass{background:linear-gradient(180deg,rgba(17,24,39,.72),rgba(15,23,42,.58));border:1px solid var(--bd);border-radius:var(--r);box-shadow:var(--shadow);backdrop-filter:blur(18px);overflow:hidden}.climate-main{position:relative;padding:22px;min-height:360px}.climate-main:before{content:"";position:absolute;inset:-1px;background:radial-gradient(circle at 30% 10%,rgba(34,211,238,.18),transparent 42%),radial-gradient(circle at 80% 80%,rgba(96,165,250,.16),transparent 45%);pointer-events:none}.climate-head{position:relative;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.eyebrow{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.16em}.room-title{margin:5px 0 0;font-size:clamp(20px,4vw,32px);letter-spacing:-.03em}.timebox{text-align:right;color:var(--mut);font-size:12px}.main-temp{position:relative;margin-top:22px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}.temp-number{font-size:clamp(72px,18vw,154px);line-height:.82;font-weight:900;letter-spacing:-.08em;background:linear-gradient(180deg,#fff,#93c5fd 50%,#38bdf8);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 22px 55px rgba(56,189,248,.18);white-space:nowrap}.temp-unit{font-size:clamp(24px,6vw,46px);font-weight:800;color:#bfdbfe;margin-bottom:.12em;white-space:nowrap}.feels{position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.chip{border:1px solid rgba(255,255,255,.12);background:rgba(15,23,42,.62);padding:9px 11px;border-radius:999px;color:#dbeafe;font-size:13px}.chip b{color:white}.comfort-row{position:relative;display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:center;margin-top:24px}.ring{width:120px;height:120px;position:relative;display:grid;place-items:center}.ring svg{position:absolute;inset:0;transform:rotate(-90deg)}.ring .score{font-weight:900;font-size:30px}.ring .score small{font-size:12px;color:var(--mut)}.analysis h3{margin:0 0 8px;font-size:18px}.analysis p{margin:0;color:var(--mut);line-height:1.55;font-size:14px}.bar{margin-top:14px;height:10px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}.bar span{display:block;height:100%;width:40%;border-radius:inherit;background:linear-gradient(90deg,var(--green),var(--cyan),var(--blue));transition:width .7s ease}.mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}.mini{padding:14px;border-radius:18px;background:rgba(15,23,42,.58);border:1px solid rgba(255,255,255,.08)}.mini label{display:block;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.11em}.mini strong{display:block;margin-top:6px;font-size:clamp(20px,5vw,32px);line-height:1;white-space:nowrap}.mini .sub{margin-top:6px;color:var(--mut);font-size:12px}.chart-card{padding:18px}.card-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.card-title h2{font-size:16px;margin:0}.badge{font-size:12px;color:#bfdbfe;border:1px solid rgba(96,165,250,.25);background:rgba(37,99,235,.12);border-radius:999px;padding:5px 9px}.chart-wrap{height:265px;position:relative;border-radius:18px;background:linear-gradient(180deg,rgba(15,23,42,.75),rgba(2,6,23,.38));border:1px solid rgba(255,255,255,.06);overflow:hidden}.chart-wrap canvas{width:100%;height:100%;display:block}.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;color:var(--mut);font-size:12px}.legend i{display:inline-block;width:18px;height:3px;border-radius:99px;margin-right:6px;vertical-align:middle}.temp-line{background:var(--blue)}.hum-line{background:var(--green)}.hi-line{background:var(--amber)}
-.panels{grid-template-columns:minmax(0,1fr) minmax(310px,.58fr);margin-top:16px}.section-card{padding:18px}.assistant-card{display:grid;gap:12px}.ai-bubble{border-radius:20px;padding:15px;background:linear-gradient(135deg,rgba(37,99,235,.17),rgba(124,58,237,.12));border:1px solid rgba(147,197,253,.16)}.ai-bubble h3{margin:0 0 8px;font-size:16px}.ai-bubble p{margin:0;color:#cbd5e1;line-height:1.5;font-size:14px}.forecast-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.forecast{border-radius:16px;padding:12px;background:rgba(15,23,42,.58);border:1px solid rgba(255,255,255,.08);text-align:center}.forecast div{font-size:21px}.forecast span{display:block;color:var(--mut);font-size:11px;margin-top:4px}.control-grid{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-top:16px}.ac-control{padding:18px}.temp-control{display:flex;justify-content:center;align-items:center;gap:12px;margin:12px 0}.set-temp{font-size:56px;line-height:1;font-weight:900;color:#93c5fd}.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.btn{border:1px solid rgba(255,255,255,.11);background:rgba(15,23,42,.68);color:var(--txt);border-radius:15px;padding:12px;cursor:pointer;font-size:14px;transition:.18s transform,.18s border,.18s background}.btn:hover{transform:translateY(-1px);border-color:rgba(96,165,250,.55)}.btn:active{transform:scale(.98)}.btn.primary{background:linear-gradient(135deg,#2563eb,#7c3aed);border-color:transparent}.btn.danger{color:#fecaca;border-color:rgba(251,113,133,.36)}.round{width:50px;height:50px;border-radius:50%;font-size:24px;padding:0}.form{display:grid;gap:9px}.form label{font-size:12px;color:var(--mut)}input{width:100%;border:1px solid rgba(255,255,255,.11);background:rgba(2,6,23,.58);color:var(--txt);border-radius:13px;padding:11px;outline:0}input:focus{border-color:rgba(96,165,250,.65)}.log{height:216px;overflow:auto;background:rgba(2,6,23,.55);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;color:#9ca3af}.log div{padding:2px 0}.stat-list{display:grid;gap:7px}.stat{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.08);padding:9px 0}.stat span{color:var(--mut)}.stat b{text-align:right}.bottomnav{position:fixed;z-index:30;left:50%;bottom:14px;transform:translateX(-50%);display:none;grid-template-columns:repeat(4,1fr);gap:4px;width:min(420px,calc(100% - 28px));padding:8px;border:1px solid rgba(255,255,255,.12);border-radius:24px;background:rgba(7,9,18,.72);backdrop-filter:blur(18px);box-shadow:0 18px 60px rgba(0,0,0,.38)}.bottomnav a{text-decoration:none;color:var(--mut);font-size:11px;text-align:center;padding:8px 4px;border-radius:16px}.bottomnav a.active,.bottomnav a:hover{color:white;background:rgba(96,165,250,.14)}
-@media(max-width:900px){.hero,.panels,.control-grid{grid-template-columns:1fr}.topbar-inner{align-items:flex-start}.status-pill{align-self:center}.chart-wrap{height:230px}.bottomnav{display:grid}.app{padding:12px 12px 96px}.topbar{margin:0 -12px 12px;padding:10px 12px}.climate-main{padding:18px;min-height:unset}.climate-head{align-items:flex-start}.timebox{font-size:11px}.comfort-row{grid-template-columns:1fr;text-align:center}.ring{margin:0 auto}.mini-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.mini{padding:11px;border-radius:15px}.mini strong{font-size:clamp(19px,6.5vw,28px)}.main-temp{justify-content:center;text-align:center;gap:8px}.feels{justify-content:center}.analysis{text-align:center}.forecast-row{grid-template-columns:1fr 1fr 1fr}.btns{grid-template-columns:repeat(2,1fr)}.set-temp{font-size:48px}}
-@media(max-width:430px){.brand h1{font-size:13px}.brand p{max-width:210px}.brand-icon{width:38px;height:38px}.status-pill{font-size:11px;padding:7px 10px}.climate-main{border-radius:22px}.temp-number{font-size:clamp(68px,24vw,104px);letter-spacing:-.09em}.temp-unit{font-size:clamp(22px,8vw,32px)}.chip{font-size:12px;padding:8px 10px}.mini-metrics{grid-template-columns:1fr}.mini{display:flex;align-items:center;justify-content:space-between;gap:12px}.mini strong{margin:0}.mini .sub{display:none}.chart-wrap{height:210px}.forecast-row{grid-template-columns:1fr}.btns{grid-template-columns:1fr 1fr}.btn{padding:11px 9px;font-size:13px}.form input{font-size:13px}.topbar-inner{gap:8px}}
-@media(max-width:340px){.temp-number{font-size:62px}.btns{grid-template-columns:1fr}.mini{display:block}.mini strong{margin-top:5px}.status-pill{width:100%;justify-content:center}.topbar-inner{flex-direction:column}.brand p{max-width:100%}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--txt);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  overflow-x:hidden;
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(56,189,248,.28),transparent 34%),
+    radial-gradient(circle at 88% 12%,rgba(139,92,246,.22),transparent 32%),
+    radial-gradient(circle at 55% 100%,rgba(16,185,129,.12),transparent 38%),
+    linear-gradient(180deg,#06101d,#0b1020 55%,#060812);
+  z-index:-3;
+}
+body:after{
+  content:"";
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:38px 38px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.9),transparent);
+  z-index:-2;
+  pointer-events:none;
+}
+.orb{
+  position:fixed;
+  border-radius:50%;
+  filter:blur(80px);
+  opacity:.45;
+  pointer-events:none;
+  z-index:-1;
+  animation:float 9s ease-in-out infinite alternate;
+}
+.orb.one{width:270px;height:270px;background:#2563eb;left:-90px;top:140px}
+.orb.two{width:240px;height:240px;background:#7c3aed;right:-80px;bottom:100px;animation-delay:1.5s}
+@keyframes float{from{transform:translateY(-18px)}to{transform:translateY(18px)}}
+
+.app{
+  width:min(1220px,100%);
+  margin:0 auto;
+  padding:18px 18px 92px;
+}
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:20;
+  margin:0 -18px 16px;
+  padding:12px 18px;
+  background:linear-gradient(180deg,rgba(7,11,20,.92),rgba(7,11,20,.58));
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.topbar-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:min(1220px,100%);
+  margin:0 auto;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-icon{
+  width:42px;height:42px;border-radius:16px;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  display:grid;place-items:center;
+  box-shadow:0 0 28px rgba(96,165,250,.35);
+}
+.brand h1{font-size:15px;letter-spacing:.14em;margin:0;white-space:nowrap}
+.brand p{margin:2px 0 0;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status-pill{
+  border:1px solid var(--bd);
+  background:rgba(15,23,42,.72);
+  border-radius:999px;
+  padding:8px 12px;
+  color:var(--mut);
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 12px var(--red)}
+.status-pill.on .dot{background:var(--green);box-shadow:0 0 12px var(--green)}
+.status-pill.on{color:#bbf7d0}
+
+.grid{display:grid;gap:16px}
+.hero{grid-template-columns:minmax(0,1.05fr) minmax(330px,.95fr);align-items:stretch}
+.glass{
+  background:linear-gradient(180deg,rgba(17,24,39,.74),rgba(15,23,42,.58));
+  border:1px solid var(--bd);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(18px);
+  overflow:hidden;
+}
+.climate-main{
+  position:relative;
+  padding:22px;
+  min-height:360px;
+}
+.climate-main:before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  background:
+    radial-gradient(circle at 28% 12%,rgba(34,211,238,.16),transparent 42%),
+    radial-gradient(circle at 78% 78%,rgba(96,165,250,.14),transparent 45%);
+  pointer-events:none;
+}
+.climate-head{
+  position:relative;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+.eyebrow{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.16em}
+.room-title{margin:5px 0 0;font-size:clamp(20px,4vw,32px);letter-spacing:-.03em}
+.timebox{text-align:right;color:var(--mut);font-size:12px}
+
+.main-temp{
+  position:relative;
+  margin-top:22px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+  gap:10px;
+  flex-wrap:nowrap;
+  white-space:nowrap;
+}
+.temp-big{
+  display:flex;
+  align-items:flex-start;
+  gap:6px;
+  line-height:1;
+  white-space:nowrap;
+  transform:none!important;
+  filter:none!important;
+}
+.temp-number{
+  font-size:clamp(72px,18vw,154px);
+  line-height:.82;
+  font-weight:900;
+  letter-spacing:-0.06em;
+  white-space:nowrap;
+  color:#8fd3ff;
+  font-family:Inter,"SF Pro Display",Poppins,Arial,sans-serif;
+  text-rendering:geometricPrecision;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  transform:translateZ(0);
+  backface-visibility:hidden;
+  text-shadow:
+    0 0 12px rgba(56,189,248,.18),
+    0 0 34px rgba(56,189,248,.10);
+}
+.temp-unit{
+  font-size:clamp(24px,6vw,46px);
+  font-weight:800;
+  color:#dbeafe;
+  margin-top:.18em;
+  margin-left:-4px;
+  line-height:1;
+  white-space:nowrap;
+  text-rendering:geometricPrecision;
+  -webkit-font-smoothing:antialiased;
+}
+
+.feels{position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.chip{
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(15,23,42,.62);
+  padding:9px 11px;
+  border-radius:999px;
+  color:#dbeafe;
+  font-size:13px;
+}
+.chip b{color:white}
+.comfort-row{
+  position:relative;
+  display:grid;
+  grid-template-columns:120px 1fr;
+  gap:16px;
+  align-items:center;
+  margin-top:24px;
+}
+.ring{width:120px;height:120px;position:relative;display:grid;place-items:center}
+.ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring .score{font-weight:900;font-size:30px}
+.ring .score small{font-size:12px;color:var(--mut)}
+.analysis h3{margin:0 0 8px;font-size:18px}
+.analysis p{margin:0;color:var(--mut);line-height:1.55;font-size:14px}
+.bar{margin-top:14px;height:10px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar span{display:block;height:100%;width:40%;border-radius:inherit;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple));transition:width .7s ease}
+.mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.mini{padding:14px;border-radius:18px;background:rgba(15,23,42,.58);border:1px solid rgba(255,255,255,.08)}
+.mini label{display:block;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.11em}
+.mini strong{display:block;margin-top:6px;font-size:clamp(20px,5vw,32px);line-height:1;white-space:nowrap}
+.mini .sub{margin-top:6px;color:var(--mut);font-size:12px}
+
+.chart-card{padding:18px}
+.card-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.card-title h2{font-size:16px;margin:0}
+.badge{font-size:12px;color:#bfdbfe;border:1px solid rgba(96,165,250,.25);background:rgba(37,99,235,.12);border-radius:999px;padding:5px 9px}
+.chart-wrap{
+  height:265px;
+  position:relative;
+  border-radius:18px;
+  background:linear-gradient(180deg,rgba(15,23,42,.75),rgba(2,6,23,.38));
+  border:1px solid rgba(255,255,255,.06);
+  overflow:hidden;
+}
+.chart-wrap canvas{width:100%;height:100%;display:block}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;color:var(--mut);font-size:12px}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:99px;margin-right:6px;vertical-align:middle}
+.temp-line{background:var(--blue2)}.hum-line{background:var(--green)}.hi-line{background:var(--amber)}
+
+.panels{grid-template-columns:minmax(0,1fr) minmax(310px,.58fr);margin-top:16px}
+.section-card{padding:18px}
+.assistant-card{display:grid;gap:12px}
+.ai-bubble{
+  border-radius:20px;
+  padding:15px;
+  background:linear-gradient(135deg,rgba(37,99,235,.17),rgba(124,58,237,.12));
+  border:1px solid rgba(147,197,253,.16);
+}
+.ai-bubble h3{margin:0 0 8px;font-size:16px}
+.ai-bubble p{margin:0;color:#cbd5e1;line-height:1.5;font-size:14px}
+.forecast-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.forecast{border-radius:16px;padding:12px;background:rgba(15,23,42,.58);border:1px solid rgba(255,255,255,.08);text-align:center}
+.forecast div{font-size:21px}.forecast span{display:block;color:var(--mut);font-size:11px;margin-top:4px}
+
+.control-grid{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-top:16px}
+.ac-control{padding:18px}
+.temp-control{display:flex;justify-content:center;align-items:center;gap:12px;margin:12px 0}
+.set-temp{font-size:56px;line-height:1;font-weight:900;color:#93c5fd}
+.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.btn{
+  border:1px solid rgba(255,255,255,.11);
+  background:rgba(15,23,42,.68);
+  color:var(--txt);
+  border-radius:15px;
+  padding:12px;
+  cursor:pointer;
+  font-size:14px;
+  transition:.18s transform,.18s border,.18s background;
+}
+.btn:hover{transform:translateY(-1px);border-color:rgba(96,165,250,.55)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,#2563eb,#7c3aed);border-color:transparent}
+.btn.danger{color:#fecaca;border-color:rgba(251,113,133,.36)}
+.round{width:50px;height:50px;border-radius:50%;font-size:24px;padding:0}
+.form{display:grid;gap:9px}
+.form label{font-size:12px;color:var(--mut)}
+input{width:100%;border:1px solid rgba(255,255,255,.11);background:rgba(2,6,23,.58);color:var(--txt);border-radius:13px;padding:11px;outline:0}
+input:focus{border-color:rgba(96,165,250,.65)}
+.log{height:216px;overflow:auto;background:rgba(2,6,23,.55);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;color:#9ca3af}
+.log div{padding:2px 0}
+.stat-list{display:grid;gap:7px}
+.stat{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.08);padding:9px 0}
+.stat span{color:var(--mut)}.stat b{text-align:right}
+.bottomnav{
+  position:fixed;z-index:30;left:50%;bottom:14px;transform:translateX(-50%);
+  display:none;grid-template-columns:repeat(4,1fr);gap:4px;
+  width:min(420px,calc(100% - 28px));
+  padding:8px;border:1px solid rgba(255,255,255,.12);border-radius:24px;
+  background:rgba(7,9,18,.72);backdrop-filter:blur(18px);box-shadow:0 18px 60px rgba(0,0,0,.38)
+}
+.bottomnav a{text-decoration:none;color:var(--mut);font-size:11px;text-align:center;padding:8px 4px;border-radius:16px}
+.bottomnav a.active,.bottomnav a:hover{color:white;background:rgba(96,165,250,.14)}
+
+@media(max-width:900px){
+  .hero,.panels,.control-grid{grid-template-columns:1fr}
+  .topbar-inner{align-items:flex-start}
+  .status-pill{align-self:center}
+  .chart-wrap{height:230px}
+  .bottomnav{display:grid}
+  .app{padding:12px 12px 96px}
+  .topbar{margin:0 -12px 12px;padding:10px 12px}
+  .climate-main{padding:18px;min-height:unset}
+  .timebox{font-size:11px}
+  .comfort-row{grid-template-columns:1fr;text-align:center}
+  .ring{margin:0 auto}
+  .mini-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .mini{padding:11px;border-radius:15px}
+  .mini strong{font-size:clamp(19px,6.5vw,28px)}
+  .main-temp{justify-content:center;text-align:center;gap:8px}
+  .feels{justify-content:center}
+  .analysis{text-align:center}
+  .forecast-row{grid-template-columns:1fr 1fr 1fr}
+  .btns{grid-template-columns:repeat(2,1fr)}
+  .set-temp{font-size:48px}
+}
+@media(max-width:430px){
+  .brand h1{font-size:13px}
+  .brand p{max-width:210px}
+  .brand-icon{width:38px;height:38px}
+  .status-pill{font-size:11px;padding:7px 10px}
+  .climate-main{border-radius:22px}
+  .temp-number{font-size:clamp(68px,24vw,104px);letter-spacing:-0.08em}
+  .temp-unit{font-size:clamp(22px,8vw,32px);margin-left:-2px}
+  .chip{font-size:12px;padding:8px 10px}
+  .mini-metrics{grid-template-columns:1fr}
+  .mini{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .mini strong{margin:0}
+  .mini .sub{display:none}
+  .chart-wrap{height:210px}
+  .forecast-row{grid-template-columns:1fr}
+  .btns{grid-template-columns:1fr 1fr}
+  .btn{padding:11px 9px;font-size:13px}
+  .form input{font-size:13px}
+  .topbar-inner{gap:8px}
+}
+@media(max-width:340px){
+  .temp-number{font-size:62px}
+  .btns{grid-template-columns:1fr}
+  .mini{display:block}
+  .mini strong{margin-top:5px}
+  .status-pill{width:100%;justify-content:center}
+  .topbar-inner{flex-direction:column}
+  .brand p{max-width:100%}
+}
 </style>
 </head>
 <body>
-<div class="orb one"></div><div class="orb two"></div>
+<div class="orb one"></div>
+<div class="orb two"></div>
+
 <div class="app">
   <header class="topbar">
     <div class="topbar-inner">
-      <div class="brand"><div class="brand-icon">❄️</div><div><h1>SMARTROOM CLIMATE</h1><p>Developed by Duong Manh</p></div></div>
-      <div class="status-pill" id="conn"><span class="dot"></span><span>MQTT: chưa kết nối</span></div>
+      <div class="brand">
+        <div class="brand-icon">❄️</div>
+        <div>
+          <h1>SMARTROOM CLIMATE</h1>
+          <p>Developed by Duong Manh</p>
+        </div>
+      </div>
+      <div class="status-pill" id="conn"><span class="dot"></span>MQTT: chưa kết nối</div>
     </div>
   </header>
 
-  <section id="home" class="grid hero">
+  <section class="grid hero" id="home">
     <div class="glass climate-main">
       <div class="climate-head">
-        <div><div class="eyebrow">Không khí trong phòng</div><h2 class="room-title" id="roomTitle">Đang chờ dữ liệu...</h2></div>
-        <div class="timebox"><div id="clock">--:--</div><div id="dateText">SmartRoom</div></div>
+        <div>
+          <div class="eyebrow">Không khí trong phòng</div>
+          <h2 class="room-title" id="roomState">Đang chờ dữ liệu</h2>
+        </div>
+        <div class="timebox"><div id="clock">--:--</div><div id="date">--</div></div>
       </div>
+
       <div class="main-temp">
-        <div class="temp-number"><span id="temp">--</span></div><div class="temp-unit">°C</div>
+        <div class="temp-big">
+          <span class="temp-number" id="temp">--</span>
+          <span class="temp-unit">°C</span>
+        </div>
       </div>
+
       <div class="feels">
         <div class="chip">Cảm nhận <b><span id="hi">--</span>°C</b></div>
         <div class="chip">Độ ẩm <b><span id="hum">--</span>%</b></div>
         <div class="chip">WiFi <b><span id="rssi">--</span></b></div>
       </div>
+
       <div class="comfort-row">
         <div class="ring">
-          <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,.08)" stroke-width="12" fill="none"/><circle id="comfortArc" cx="60" cy="60" r="50" stroke="url(#g)" stroke-width="12" stroke-linecap="round" fill="none" stroke-dasharray="314" stroke-dashoffset="188"/><defs><linearGradient id="g"><stop offset="0" stop-color="#10b981"/><stop offset=".55" stop-color="#22d3ee"/><stop offset="1" stop-color="#60a5fa"/></linearGradient></defs></svg>
+          <svg viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/>
+            <circle id="comfortArc" cx="60" cy="60" r="48" fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="round" stroke-dasharray="301" stroke-dashoffset="185"/>
+            <defs><linearGradient id="g"><stop stop-color="#34d399"/><stop offset=".55" stop-color="#38bdf8"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+          </svg>
           <div class="score"><span id="comfort">--</span><small>/100</small></div>
         </div>
-        <div class="analysis"><h3 id="comfortText">Đang phân tích...</h3><p id="insight">Khi ESP gửi dữ liệu MQTT, dashboard sẽ tự đánh giá mức nóng, ẩm và gợi ý nhiệt độ phù hợp.</p><div class="bar"><span id="comfortBar"></span></div></div>
+        <div class="analysis">
+          <h3 id="comfortText">Đang phân tích</h3>
+          <p id="comfortDesc">Dashboard sẽ tự đánh giá mức thoải mái khi ESP gửi dữ liệu.</p>
+          <div class="bar"><span id="comfortBar"></span></div>
+        </div>
       </div>
+
       <div class="mini-metrics">
         <div class="mini"><label>Lý tưởng</label><strong><span id="ideal">--</span>°C</strong><div class="sub">Gợi ý AI</div></div>
-        <div class="mini"><label>AC Temp</label><strong><span id="actempMini">--</span>°C</strong><div class="sub">Cài đặt</div></div>
-        <div class="mini"><label>Heap</label><strong><span id="heapMini">--</span></strong><div class="sub">ESP RAM</div></div>
+        <div class="mini"><label>AC Temp</label><strong><span id="actemp">--</span>°C</strong><div class="sub">Cài đặt</div></div>
+        <div class="mini"><label>Heap</label><strong id="heap">--</strong><div class="sub">ESP RAM</div></div>
       </div>
     </div>
 
-    <div id="analytics" class="glass chart-card">
-      <div class="card-title"><h2>Biểu đồ realtime</h2><span class="badge" id="sampleCount">0 mẫu</span></div>
+    <div class="glass chart-card">
+      <div class="card-title">
+        <h2>Biểu đồ realtime</h2>
+        <span class="badge"><span id="sampleCount">0</span> mẫu</span>
+      </div>
       <div class="chart-wrap"><canvas id="chart"></canvas></div>
-      <div class="legend"><span><i class="temp-line"></i>Nhiệt độ</span><span><i class="hum-line"></i>Độ ẩm</span><span><i class="hi-line"></i>Cảm nhận</span></div>
+      <div class="legend">
+        <span><i class="temp-line"></i>Nhiệt độ</span>
+        <span><i class="hum-line"></i>Độ ẩm</span>
+        <span><i class="hi-line"></i>Cảm nhận</span>
+      </div>
     </div>
   </section>
 
-  <section class="grid panels">
+  <section class="grid panels" id="analysis">
     <div class="glass section-card assistant-card">
-      <div class="card-title"><h2>AI Climate Assistant</h2><span class="badge" id="moodBadge">Đang học</span></div>
-      <div class="ai-bubble"><h3 id="aiTitle">Gợi ý thông minh</h3><p id="aiText">Dashboard sẽ tự đổi lời khuyên theo nhiệt độ, độ ẩm, heat-index và trạng thái điều hòa.</p></div>
-      <div class="forecast-row"><div class="forecast"><div>🌡️</div><b id="trendTemp">Ổn định</b><span>Nhiệt độ</span></div><div class="forecast"><div>💧</div><b id="trendHum">Ổn định</b><span>Độ ẩm</span></div><div class="forecast"><div>⚡</div><b id="efficiency">--</b><span>Hiệu quả</span></div></div>
+      <div class="card-title"><h2>AI Climate Assistant</h2><span class="badge" id="alertBadge">Standby</span></div>
+      <div class="ai-bubble">
+        <h3 id="aiTitle">Gợi ý: --</h3>
+        <p id="aiText">Đang chờ dữ liệu từ ESP8266.</p>
+      </div>
+      <div class="forecast-row">
+        <div class="forecast"><div>🌡️</div><b id="tempStatus">--</b><span>Nhiệt độ</span></div>
+        <div class="forecast"><div>💧</div><b id="humStatus">--</b><span>Độ ẩm</span></div>
+        <div class="forecast"><div>⚡</div><b id="effStatus">--</b><span>Hiệu quả</span></div>
+      </div>
     </div>
-    <div id="system" class="glass section-card">
-      <div class="card-title"><h2>Trạng thái ESP</h2><span class="badge" id="acpower">--</span></div>
-      <div class="stat-list"><div class="stat"><span>IP nội bộ</span><b id="ip">--</b></div><div class="stat"><span>DHT11</span><b id="dht">--</b></div><div class="stat"><span>Free heap</span><b id="heap">--</b></div><div class="stat"><span>Uptime</span><b id="uptime">--</b></div></div>
-    </div>
-  </section>
 
-  <section id="control" class="grid control-grid">
-    <div class="glass ac-control">
-      <div class="card-title"><h2>Điều khiển điều hòa</h2><span class="badge">Giữ nguyên</span></div>
-      <div class="temp-control"><button class="btn round" onclick="changeTemp(-1)">−</button><div class="set-temp"><span id="setTemp">26</span>°C</div><button class="btn round" onclick="changeTemp(1)">+</button></div>
-      <div class="btns"><button class="btn primary" onclick="powerOn()">⏻ Bật Cool</button><button class="btn danger" onclick="sendCmd('power_off')">Tắt</button><button class="btn" onclick="sendCmd('mode_cool')">❄️ Cool</button><button class="btn" onclick="sendCmd('mode_dry')">💧 Dry</button><button class="btn" onclick="sendCmd('mode_fan')">💨 Fan</button><button class="btn" onclick="sendCmd('fan_4')">⚡ Turbo</button><button class="btn" onclick="sendCmd('swing_on')">↕ Swing On</button><button class="btn" onclick="sendCmd('swing_off')">Swing Off</button><button class="btn" onclick="sendCmd('sleep')">😴 Sleep</button><button class="btn" onclick="sendCmd('eco')">🌿 Eco</button><button class="btn" onclick="sendCmd('led')">💡 LED</button><button class="btn" onclick="sendCmd('timer_1h')">⏱ 1h</button></div>
-    </div>
     <div class="glass section-card">
-      <div class="card-title"><h2>MQTT Cloud</h2><span class="badge">Auto</span></div>
-      <div class="form"><label>WebSocket URL</label><input id="url"><label>Username</label><input id="user"><label>Password</label><input id="pass" type="password"><label>Topic lệnh</label><input id="topicCmd"><label>Topic dữ liệu</label><input id="topicData"><button class="btn primary" onclick="saveAndConnect()">Lưu & kết nối</button></div>
+      <div class="card-title"><h2>Trạng thái ESP</h2><span class="badge" id="acState">AC --</span></div>
+      <div class="stat-list">
+        <div class="stat"><span>IP nội bộ</span><b id="ip">--</b></div>
+        <div class="stat"><span>DHT11</span><b id="dht">--</b></div>
+        <div class="stat"><span>Free heap</span><b id="heap2">--</b></div>
+        <div class="stat"><span>Uptime</span><b id="uptime">--</b></div>
+      </div>
     </div>
   </section>
 
-  <section class="glass section-card" style="margin-top:16px"><div class="card-title"><h2>Log</h2><span class="badge" id="lastSeen">--</span></div><div class="log" id="log"></div></section>
+  <section class="grid control-grid" id="control">
+    <div class="glass ac-control">
+      <div class="card-title"><h2>Điều khiển điều hòa</h2><span class="badge">IR / MQTT</span></div>
+      <div class="temp-control">
+        <button class="btn round" onclick="changeTemp(-1)">−</button>
+        <div class="set-temp"><span id="setTemp">26</span>°C</div>
+        <button class="btn round" onclick="changeTemp(1)">+</button>
+      </div>
+      <div class="btns">
+        <button class="btn primary" onclick="powerOn()">⏻ Bật Cool</button>
+        <button class="btn danger" onclick="sendCmd('power_off')">Tắt</button>
+        <button class="btn" onclick="sendCmd('mode_cool')">❄️ Cool</button>
+        <button class="btn" onclick="sendCmd('mode_dry')">💧 Dry</button>
+        <button class="btn" onclick="sendCmd('mode_fan')">💨 Fan</button>
+        <button class="btn" onclick="sendCmd('fan_4')">⚡ Turbo</button>
+        <button class="btn" onclick="sendCmd('swing_on')">↕ Swing On</button>
+        <button class="btn" onclick="sendCmd('swing_off')">Swing Off</button>
+        <button class="btn" onclick="sendCmd('sleep')">😴 Sleep</button>
+        <button class="btn" onclick="sendCmd('eco')">🌿 Eco</button>
+        <button class="btn" onclick="sendCmd('led')">💡 LED</button>
+        <button class="btn" onclick="sendCmd('timer_1h')">⏱ 1h</button>
+      </div>
+    </div>
+
+    <div class="glass section-card">
+      <div class="card-title"><h2>Cấu hình MQTT</h2><span class="badge">Auto</span></div>
+      <div class="form">
+        <label>WebSocket URL</label><input id="url">
+        <label>Username</label><input id="user">
+        <label>Password</label><input id="pass" type="password">
+        <label>Topic lệnh</label><input id="topicCmd">
+        <label>Topic dữ liệu</label><input id="topicData">
+        <button class="btn primary" onclick="saveAndConnect()">Lưu & kết nối</button>
+      </div>
+      <div class="log" id="log" style="margin-top:12px"></div>
+    </div>
+  </section>
 </div>
-<nav class="bottomnav"><a href="#home" class="active">🏠<br>Home</a><a href="#analytics">📈<br>Chart</a><a href="#control">🎛️<br>AC</a><a href="#system">⚙️<br>ESP</a></nav>
+
+<nav class="bottomnav">
+  <a class="active" href="#home">🏠<br>Tổng quan</a>
+  <a href="#analysis">🤖<br>Phân tích</a>
+  <a href="#control">❄️<br>Điều hòa</a>
+  <a href="#settings">⚙️<br>Cấu hình</a>
+</nav>
+
 <script>
-const MQTT_DEFAULT={url:'wss://c8b3d37d294046e6ba3cd347a57e9eb5.s1.eu.hivemq.cloud:8884/mqtt',user:'smartroom2',pass:'manhA123@',topicCmd:'smartroom/cmd',topicData:'smartroom/data'};
-let client=null,setTemp=26,history=[];const MAX_POINTS=60;const $=id=>document.getElementById(id);
-function log(msg){const t=new Date().toLocaleTimeString('vi-VN');$('log').innerHTML=`<div>[${t}] ${msg}</div>`+$('log').innerHTML;$('lastSeen').textContent=t}
-function clock(){const n=new Date();$('clock').textContent=n.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});$('dateText').textContent=n.toLocaleDateString('vi-VN',{weekday:'short',day:'2-digit',month:'2-digit'})}setInterval(clock,1000);clock();
-function loadCfg(){Object.keys(MQTT_DEFAULT).forEach(k=>{$(k==='topicCmd'||k==='topicData'?k:k).value=localStorage.getItem('sr_'+k)||MQTT_DEFAULT[k]});connect()}
-function saveCfg(){['url','user','pass','topicCmd','topicData'].forEach(id=>localStorage.setItem('sr_'+id,$(id).value.trim()))}
-function setConn(ok,msg){$('conn').className='status-pill '+(ok?'on':'off');$('conn').innerHTML='<span class="dot"></span><span>MQTT: '+msg+'</span>'}
+let client=null,setTemp=26;
+const $=id=>document.getElementById(id);
+const hist=[];
+const maxHist=60;
+const cfg={
+  url:"wss://c8b3d37d294046e6ba3cd347a57e9eb5.s1.eu.hivemq.cloud:8884/mqtt",
+  user:"smartroom2",
+  pass:"manhA123@",
+  topicCmd:"smartroom/cmd",
+  topicData:"smartroom/data"
+};
+function log(msg){const t=new Date().toLocaleTimeString("vi-VN");$("log").innerHTML=`<div>[${t}] ${msg}</div>`+$("log").innerHTML}
+function loadCfg(){
+  $("url").value=localStorage.getItem("sr_url")||cfg.url;
+  $("user").value=localStorage.getItem("sr_user")||cfg.user;
+  $("pass").value=localStorage.getItem("sr_pass")||cfg.pass;
+  $("topicCmd").value=localStorage.getItem("sr_topicCmd")||cfg.topicCmd;
+  $("topicData").value=localStorage.getItem("sr_topicData")||cfg.topicData;
+  connect();
+}
+function saveCfg(){["url","user","pass","topicCmd","topicData"].forEach(id=>localStorage.setItem("sr_"+id,$(id).value.trim()))}
+function setConn(ok,msg){$("conn").innerHTML=`<span class="dot"></span>MQTT: ${msg}`;$("conn").className="status-pill "+(ok?"on":"")}
 function saveAndConnect(){saveCfg();connect()}
-function connect(){const url=$('url').value.trim(),username=$('user').value.trim(),password=$('pass').value.trim();if(!url||!username||!password){setConn(false,'thiếu cấu hình');log('Điền MQTT WebSocket URL/user/pass');return}if(client)try{client.end(true)}catch(e){}client=mqtt.connect(url,{username,password,clientId:'smartroom-web-'+Math.random().toString(16).slice(2),clean:true,connectTimeout:6000,reconnectPeriod:3000});client.on('connect',()=>{setConn(true,'đã kết nối');log('✓ MQTT connected');client.subscribe($('topicData').value.trim())});client.on('reconnect',()=>setConn(false,'đang kết nối lại'));client.on('error',e=>{setConn(false,'lỗi');log('✗ '+e.message)});client.on('message',(topic,payload)=>{try{update(JSON.parse(payload.toString()))}catch(e){log('data: '+payload.toString())}})}
-function sendCmd(cmd){if(!client||!client.connected){log('✗ MQTT chưa kết nối');return}client.publish($('topicCmd').value.trim(),cmd);log('IR → '+cmd)}function powerOn(){sendCmd('power_on_cool_'+setTemp+'c')}function changeTemp(d){setTemp=Math.max(16,Math.min(30,setTemp+d));$('setTemp').textContent=setTemp;sendCmd(d>0?'temp_up':'temp_down')}
-function clamp(v,a,b){return Math.max(a,Math.min(b,v))}function trend(key){if(history.length<6)return 'Ổn định';let a=history[history.length-1][key],b=history[history.length-6][key];if(a-b>.4)return 'Đang tăng';if(b-a>.4)return 'Đang giảm';return 'Ổn định'}
-function analyze(d){const t=+d.temperature||0,h=+d.humidity||0,hi=+d.heat_index||t,comfort=d.comfort!==undefined?+d.comfort:clamp(Math.round(100-Math.abs(t-24)*8-Math.abs(h-55)*.5),0,100);$('comfort').textContent=isFinite(comfort)?comfort:'--';$('comfortBar').style.width=clamp(comfort,0,100)+'%';$('comfortArc').style.strokeDashoffset=314-(314*clamp(comfort,0,100)/100);let title='Khá ổn',insight='Phòng đang trong vùng tương đối thoải mái.';let mood='Comfort'; if(hi>=40){title='Rất nóng';mood='Nóng gắt';insight='Heat index đang cao. Nên bật Cool/Turbo và đặt khoảng 23–24°C.'}else if(hi>=33){title='Nóng và oi';mood='Cần làm mát';insight='Nên dùng Cool 24–25°C. Nếu độ ẩm cao, thử Dry trước khi giảm sâu nhiệt độ.'}else if(h>=75){title='Ẩm cao';mood='Ẩm';insight='Độ ẩm cao dễ gây bí. Chế độ Dry sẽ hợp hơn Cool liên tục.'}else if(t<=23){title='Mát';mood='Cool';insight='Nhiệt độ thấp, có thể tăng setpoint để tiết kiệm điện.'}$('comfortText').textContent=title;$('insight').textContent=insight;$('moodBadge').textContent=mood;$('roomTitle').textContent=title;$('aiTitle').textContent='Gợi ý: '+(d.ideal_temp||'24')+'°C';$('aiText').textContent=insight;$('trendTemp').textContent=trend('temperature');$('trendHum').textContent=trend('humidity');$('efficiency').textContent=d.ac_power?'Đang làm mát':'Standby'}
-function update(d){if(d.temperature!==undefined)$('temp').textContent=d.temperature;if(d.humidity!==undefined)$('hum').textContent=d.humidity;if(d.heat_index!==undefined)$('hi').textContent=d.heat_index;if(d.rssi!==undefined)$('rssi').textContent=d.rssi;if(d.ideal_temp!==undefined)$('ideal').textContent=d.ideal_temp;if(d.ip)$('ip').textContent=d.ip;if(d.dht_ok!==undefined)$('dht').textContent=d.dht_ok?'OK':'ERROR';if(d.ac_power!==undefined)$('acpower').textContent=d.ac_power?'AC ON':'AC OFF';if(d.ac_temp!==undefined){$('actempMini').textContent=d.ac_temp;setTemp=d.ac_temp;$('setTemp').textContent=setTemp}if(d.free_heap!==undefined){$('heap').textContent=d.free_heap;$('heapMini').textContent=d.free_heap}if(d.uptime_ms!==undefined)$('uptime').textContent=Math.floor(d.uptime_ms/60000)+' phút';history.push({time:new Date(),temperature:+d.temperature||0,humidity:+d.humidity||0,heat_index:+d.heat_index||(+d.temperature||0)});if(history.length>MAX_POINTS)history.shift();$('sampleCount').textContent=history.length+' mẫu';analyze(d);drawChart();if(d.event)log('ESP: '+d.event)}
-function drawChart(){const c=$('chart'),ctx=c.getContext('2d'),r=c.parentElement.getBoundingClientRect(),DPR=window.devicePixelRatio||1;c.width=r.width*DPR;c.height=r.height*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);const w=r.width,h=r.height,p=26;ctx.clearRect(0,0,w,h);ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;for(let i=0;i<5;i++){let y=p+(h-2*p)*i/4;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(w-p,y);ctx.stroke()}if(history.length<2)return;const vals=history.flatMap(d=>[d.temperature,d.heat_index]);let min=Math.min(18,...vals)-2,max=Math.max(38,...vals)+2;function pt(i,v){return[p+(w-2*p)*i/(history.length-1),h-p-(h-2*p)*(v-min)/(max-min)]}function line(key,color,fill){ctx.beginPath();history.forEach((d,i)=>{const [x,y]=pt(i,d[key]);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle=color;ctx.lineWidth=3;ctx.lineJoin='round';ctx.lineCap='round';ctx.shadowColor=color;ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;if(fill){let last=pt(history.length-1,history[history.length-1][key]);ctx.lineTo(last[0],h-p);ctx.lineTo(p,h-p);ctx.closePath();let g=ctx.createLinearGradient(0,p,0,h-p);g.addColorStop(0,fill);g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fill()}}line('heat_index','rgba(245,158,11,.92)','rgba(245,158,11,.12)');line('temperature','rgba(96,165,250,.98)','rgba(96,165,250,.16)');ctx.beginPath();history.forEach((d,i)=>{const x=p+(w-2*p)*i/(history.length-1),y=h-p-(h-2*p)*(d.humidity-30)/(90-30);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle='rgba(16,185,129,.9)';ctx.lineWidth=2;ctx.setLineDash([5,6]);ctx.stroke();ctx.setLineDash([])}
-window.addEventListener('resize',drawChart);document.querySelectorAll('.bottomnav a').forEach(a=>a.onclick=()=>{document.querySelectorAll('.bottomnav a').forEach(x=>x.classList.remove('active'));a.classList.add('active')});loadCfg();log('Dashboard mobile-first sẵn sàng.');
+function connect(){
+  const url=$("url").value.trim(),username=$("user").value.trim(),password=$("pass").value.trim();
+  if(!url||!username||!password){setConn(false,"thiếu cấu hình");log("Điền MQTT URL/user/pass");return}
+  if(client)try{client.end(true)}catch(e){}
+  client=mqtt.connect(url,{username,password,clientId:"smartroom-web-"+Math.random().toString(16).slice(2),clean:true,connectTimeout:5000,reconnectPeriod:3000});
+  client.on("connect",()=>{setConn(true,"đã kết nối");log("✓ MQTT connected");client.subscribe($("topicData").value.trim())});
+  client.on("reconnect",()=>setConn(false,"đang kết nối lại"));
+  client.on("error",e=>{setConn(false,"lỗi");log("✗ "+e.message)});
+  client.on("message",(topic,payload)=>{try{update(JSON.parse(payload.toString()))}catch(e){log("data: "+payload.toString())}});
+}
+function sendCmd(cmd){
+  if(!client||!client.connected){log("✗ MQTT chưa kết nối");return}
+  client.publish($("topicCmd").value.trim(),cmd);
+  log("IR → "+cmd);
+}
+function powerOn(){sendCmd("power_on_cool_"+setTemp+"c")}
+function changeTemp(d){setTemp=Math.max(16,Math.min(30,setTemp+d));$("setTemp").textContent=setTemp;sendCmd(d>0?"temp_up":"temp_down")}
+
+function comfortLevel(t,h,hi){
+  let score=Math.max(0,Math.min(100,100-Math.abs(t-24)*8-Math.abs(h-55)*.7));
+  if(hi>40)score=Math.min(score,48);
+  if(hi>35)score=Math.min(score,62);
+  let state="Ổn định",desc="Không khí trong phòng đang ở mức chấp nhận được.",badge="Standby";
+  if(hi>=40){state="Rất nóng";desc="Heat index đang cao. Nên bật Cool/Turbo và đặt khoảng 23–24°C.";badge="Nóng gắt"}
+  else if(t>=30){state="Nóng";desc="Nhiệt độ phòng cao. Nên bật Cool và đặt khoảng 24–25°C.";badge="Nóng"}
+  else if(h>=75){state="Ẩm cao";desc="Độ ẩm cao. Nên dùng Dry mode để dễ chịu hơn.";badge="Ẩm"}
+  else if(t>=26){state="Hơi nóng";desc="Có thể đặt điều hòa 25–26°C để thoải mái hơn.";badge="Ấm"}
+  else if(t<20){state="Lạnh";desc="Nhiệt độ hơi thấp, nên tăng nhiệt độ cài đặt.";badge="Lạnh"}
+  return{score:Math.round(score),state,desc,badge};
+}
+function fmtUptime(ms){
+  if(!ms)return"--";
+  const m=Math.floor(ms/60000),h=Math.floor(m/60);
+  if(h)return h+" giờ "+(m%60)+" phút";
+  return m+" phút";
+}
+function updateClock(){
+  const n=new Date();
+  $("clock").textContent=n.toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"});
+  $("date").textContent=n.toLocaleDateString("vi-VN",{weekday:"short",day:"2-digit",month:"2-digit"});
+}
+setInterval(updateClock,1000);updateClock();
+
+function update(d){
+  const t=Number(d.temperature??0),h=Number(d.humidity??0),hi=Number(d.heat_index??0);
+  if(d.temperature!==undefined)$("temp").textContent=t.toFixed(1);
+  if(d.humidity!==undefined)$("hum").textContent=Math.round(h);
+  if(d.heat_index!==undefined)$("hi").textContent=hi.toFixed(0);
+  if(d.rssi!==undefined)$("rssi").textContent=d.rssi;
+  if(d.ideal_temp!==undefined)$("ideal").textContent=d.ideal_temp;
+  if(d.ac_temp!==undefined){$("actemp").textContent=d.ac_temp;setTemp=d.ac_temp;$("setTemp").textContent=setTemp}
+  if(d.free_heap!==undefined){$("heap").textContent=d.free_heap;$("heap2").textContent=d.free_heap}
+  if(d.ip)$("ip").textContent=d.ip;
+  if(d.dht_ok!==undefined)$("dht").textContent=d.dht_ok?"OK":"ERROR";
+  if(d.ac_power!==undefined){$("acState").textContent=d.ac_power?"AC ON":"AC OFF"}
+  if(d.uptime_ms!==undefined)$("uptime").textContent=fmtUptime(d.uptime_ms);
+
+  if(d.temperature!==undefined&&d.humidity!==undefined){
+    const c=comfortLevel(t,h,hi||t);
+    $("roomState").textContent=c.state;
+    $("comfort").textContent=c.score;
+    $("comfortText").textContent=c.state;
+    $("comfortDesc").textContent=c.desc;
+    $("comfortBar").style.width=c.score+"%";
+    $("comfortArc").style.strokeDashoffset=301-(301*c.score/100);
+    $("alertBadge").textContent=c.badge;
+    $("aiTitle").textContent="Gợi ý: "+(d.ideal_temp?d.ideal_temp+"°C":"--");
+    $("aiText").textContent=c.desc;
+    $("tempStatus").textContent=t>=30?"Cao":t>=26?"Ấm":"Ổn định";
+    $("humStatus").textContent=h>=75?"Cao":h<40?"Khô":"Ổn định";
+    $("effStatus").textContent=d.ac_power?"Đang làm mát":"Standby";
+    hist.push({t,h,hi:hi||t,time:new Date()});
+    while(hist.length>maxHist)hist.shift();
+    $("sampleCount").textContent=hist.length;
+    drawChart();
+  }
+  if(d.event)log("ESP: "+d.event);
+}
+function drawChart(){
+  const c=$("chart"),ctx=c.getContext("2d");
+  const rect=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  c.width=Math.max(1,Math.floor(rect.width*dpr));c.height=Math.max(1,Math.floor(rect.height*dpr));
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const w=rect.width,h=rect.height,p=26;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle="rgba(255,255,255,.08)";ctx.lineWidth=1;
+  for(let i=0;i<4;i++){let y=p+i*(h-2*p)/3;ctx.beginPath();ctx.moveTo(p,y);ctx.lineTo(w-p,y);ctx.stroke()}
+  if(hist.length<2)return;
+  const all=hist.flatMap(x=>[x.t,x.h,x.hi]);
+  const min=Math.min(...all,20),max=Math.max(...all,80);
+  const map=(v,i)=>[p+i*(w-2*p)/(hist.length-1),h-p-(v-min)*(h-2*p)/(max-min||1)];
+  function line(key,color){
+    ctx.beginPath();ctx.lineWidth=2.5;ctx.strokeStyle=color;ctx.shadowColor=color;ctx.shadowBlur=10;
+    hist.forEach((d,i)=>{const [x,y]=map(d[key],i);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});
+    ctx.stroke();ctx.shadowBlur=0;
+  }
+  line("t","#60a5fa");line("h","#34d399");line("hi","#f59e0b");
+}
+window.addEventListener("resize",drawChart);
+loadCfg();
+log("Dashboard sẵn sàng.");
 </script>
 </body>
 </html>
