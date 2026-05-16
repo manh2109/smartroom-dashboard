@@ -79,7 +79,18 @@
 let client=null, setTemp=26;
 const $=id=>document.getElementById(id);
 function log(msg){const t=new Date().toLocaleTimeString('vi-VN'); $('log').innerHTML=`<div>[${t}] ${msg}</div>`+$('log').innerHTML}
-function loadCfg(){['url','user','pass','topicCmd','topicData'].forEach(id=>{const v=localStorage.getItem('sr_'+id); if(v) $(id).value=v})}
+function loadCfg(){
+  $('url').value =
+    'wss://c8b3d37d294046e6ba3cd347a57e9eb5.s1.eu.hivemq.cloud:8884/mqtt';
+
+  $('user').value = 'smartroom2';
+  $('pass').value = 'manhA123@';
+
+  $('topicCmd').value = 'smartroom/cmd';
+  $('topicData').value = 'smartroom/data';
+
+  connect();
+}
 function saveCfg(){['url','user','pass','topicCmd','topicData'].forEach(id=>localStorage.setItem('sr_'+id,$(id).value.trim()))}
 function setConn(ok,msg){$('conn').textContent='MQTT: '+msg; $('conn').className='pill '+(ok?'on':'off')}
 function saveAndConnect(){saveCfg(); connect()}
@@ -111,7 +122,8 @@ function update(d){
   if(d.free_heap!==undefined) $('heap').textContent=d.free_heap;
   if(d.event) log('ESP: '+d.event);
 }
-loadCfg(); log('Dashboard sẵn sàng. Nhập MQTT rồi bấm kết nối.');
+loadCfg();
+log('Dashboard tự động kết nối MQTT...');
 </script>
 </body>
 </html>
